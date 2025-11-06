@@ -184,10 +184,10 @@ func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd, bool) {
 	switch msg.Type {
 	case tea.KeyCtrlC:
-		return m, tea.Quit
+		return m, tea.Quit, true
 
 	case tea.KeyCtrlH:
 		if m.mode == searchMode {
@@ -197,16 +197,16 @@ func (m model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.mode = searchMode
 			m.textInput.Focus()
 		}
-		return m, nil
+		return m, nil, true
 
 	case tea.KeyEsc:
 		if m.mode == historyMode {
 			m.mode = searchMode
 			m.textInput.Focus()
-			return m, nil
+			return m, nil, true
 		}
 	}
-	return m, nil
+	return m, nil, false
 }
 
 func (m model) handleSearchMode(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -282,8 +282,11 @@ func (m model) handleWindowSize(msg tea.WindowSizeMsg) model {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if model, cmd := m.handleKeyMsg(msg); cmd != nil {
-			return model, cmd
+		var cmd tea.Cmd
+		var handled bool
+		m, cmd, handled = m.handleKeyMsg(msg)
+		if handled {
+			return m, cmd
 		}
 
 	case tea.WindowSizeMsg:
