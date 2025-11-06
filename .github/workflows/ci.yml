@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
           cache: true
 
       - name: Install dependencies
@@ -41,13 +41,16 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
           cache: true
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          args: --timeout=5m
+          only-new-issues: true
+          install-mode: "binary"
 
   build:
     name: Build
@@ -58,7 +61,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
           cache: true
 
       - name: Build
@@ -66,6 +69,8 @@ jobs:
 
       - name: Test Build
         run: |
+          go build -o dt
+          ./dt --version
           ./dt --help
           if [ $? -ne 0 ]; then
             echo "Build test failed"

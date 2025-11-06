@@ -174,7 +174,6 @@ func initialModel() model {
 }
 
 // --- Messages for Asynchronous Operations ---
-type lookupMsg string
 type resultMsg string
 type errMsg error
 

@@ -1,0 +1,98 @@
+# Options for analysis running
+run:
+  # Timeout for analysis, e.g. 30s, 5m
+  timeout: 5m
+
+  # Include test files or not
+  tests: true
+
+  # Allow multiple parallel golangci-lint instances running
+  allow-parallel-runners: true
+
+# Output configuration options
+output:
+  # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
+  format: colored-line-number
+  # Print lines of code with issue
+  print-issued-lines: true
+  # Print linter name in the end of issue text
+  print-linter-name: true
+
+# Linters settings
+linters-settings:
+  govet:
+    # Report about shadowed variables
+    check-shadowing: true
+  gofmt:
+    # Simplify code: gofmt with `-s` option
+    simplify: true
+  gocyclo:
+    # Minimal code complexity to report
+    min-complexity: 15
+  dupl:
+    # Tokens count to trigger issue
+    threshold: 100
+  goconst:
+    # Minimal length of string constant
+    min-len: 3
+    # Minimal occurrences count to trigger
+    min-occurrences: 3
+  misspell:
+    # Correct spellings using locale preferences
+    locale: US
+  lll:
+    # Max line length, lines longer will be reported
+    line-length: 120
+    # Tab width in spaces
+    tab-width: 4
+  unused:
+    # Treat code as a program (not a library)
+    check-exported: false
+  unparam:
+    # Call this many times before being reported
+    algo: cha
+    check-exported: false
+
+# Linters
+linters:
+  disable-all: true
+  enable:
+    - govet        # Vet examines Go source code and reports suspicious constructs
+    - errcheck     # Errcheck is a program for checking for unchecked errors in Go code
+    - staticcheck  # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
+    - unused       # Checks Go code for unused constants, variables, functions and types
+    - gosimple    # Linter for Go source code that specializes in simplifying code
+    - structcheck  # Finds unused struct fields
+    - varcheck     # Finds unused global variables and constants
+    - ineffassign  # Detects when assignments to existing variables are not used
+    - deadcode     # Finds unused code
+    - typecheck    # Parser and type checker for Go code
+    - gofmt        # Gofmt checks whether code was gofmt-ed
+    - misspell     # Finds commonly misspelled English words in comments
+    - gocyclo      # Computes and checks the cyclomatic complexity of functions
+    - dupl         # Tool for code clone detection
+    - goconst      # Finds repeated strings that could be replaced by a constant
+    - unconvert    # Remove unnecessary type conversions
+    - goimports    # Checks missing or unreferenced package imports
+    - prealloc     # Finds slice declarations that could potentially be preallocated
+    - lll          # Reports long lines
+
+# Issues configuration
+issues:
+  # Maximum count of issues with the same text
+  max-same-issues: 3
+
+  # Maximum issues count per one linter
+  max-issues-per-linter: 50
+
+  # Exclude some dirs/files from analysis
+  exclude-rules:
+    # Exclude go:generate from unused comment check
+    - text: ".*//go:generate.*"
+      linters:
+        - unused
+    # Exclude magic numbers in tests
+    - path: _test\.go
+      text: "magic number"
+      linters:
+        - gomnd
