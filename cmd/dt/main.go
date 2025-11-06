@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -24,6 +25,14 @@ var (
 	commit  = "none"
 	date    = "unknown"
 )
+
+func init() {
+	if info, ok := debug.ReadBuildInfo(); ok && version == "dev" {
+		if info.Main.Version != "(devel)" {
+			version = info.Main.Version
+		}
+	}
+}
 
 // --- API Structures ---
 type Phonetic struct {
