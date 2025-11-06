@@ -1,0 +1,41 @@
+# nfpm configuration file
+name: "dt"
+arch: "amd64"
+platform: "linux"
+version: "${VERSION}"
+
+maintainer: "rootdots <rootdots@github.com>"
+description: |
+  A terminal-based dictionary application with an interactive interface
+  and command-line support. Features both TUI and CLI modes for
+  looking up word definitions.
+vendor: "rootdots"
+homepage: "https://github.com/rootdots/dictionary-tui"
+license: "MIT"
+
+contents:
+  - src: ./dt
+    dst: /usr/local/bin/dt
+  - src: ./README.md
+    dst: /usr/share/doc/dt/README.md
+  - src: ./LICENSE
+    dst: /usr/share/doc/dt/LICENSE
+
+overrides:
+  deb:
+    depends:
+      - libc6
+    section: "utils"
+    priority: "optional"
+
+  rpm:
+    depends:
+      - glibc
+    group: "Applications/System"
+
+# Release metadata
+release: 1
+epoch: 0
+
+# Compression settings
+compression: gz

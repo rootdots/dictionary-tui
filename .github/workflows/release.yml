@@ -3,10 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   goreleaser:
@@ -20,8 +21,15 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
           cache: true
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
@@ -31,3 +39,56 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  package:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package_type: [deb, rpm]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Install nfpm
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+      - name: Get version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create ${{ matrix.package_type }} package
+        run: |
+          nfpm pkg --packager ${{ matrix.package_type }} \
+            --target ./dist/dt_${{ steps.get_version.outputs.version }}_${{ matrix.package_type }}.${matrix.package_type}
+
+      - name: Upload package to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./dist/dt_${{ steps.get_version.outputs.version }}_${{ matrix.package_type }}.${{ matrix.package_type }}
+
+  homebrew:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          formula: dt
+          tag: ${{ github.ref }}
+          revision: ${{ github.sha }}

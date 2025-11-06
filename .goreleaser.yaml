@@ -24,7 +24,6 @@ builds:
 
 archives:
   - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -32,16 +31,69 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
     format_overrides:
       - goos: windows
         format: zip
     files:
       - README.md
       - LICENSE
+      - CONTEXT.md
+
+dockers:
+  - image_templates:
+      - "ghcr.io/rootdots/dt:{{ .Version }}"
+      - "ghcr.io/rootdots/dt:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title=dt"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--platform=linux/amd64"
+
+nfpms:
+  - package_name: dt
+    homepage: https://github.com/rootdots/dictionary-tui
+    maintainer: rootdots <rootdots@github.com>
+    description: Terminal-based dictionary application with TUI and CLI modes
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - libc6
+    contents:
+      - src: ./README.md
+        dst: /usr/share/doc/dt/README.md
+      - src: ./LICENSE
+        dst: /usr/share/doc/dt/LICENSE
+    file_name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+
+brews:
+  - name: dt
+    homepage: https://github.com/rootdots/dictionary-tui
+    description: Terminal-based dictionary application with TUI and CLI modes
+    license: MIT
+    tap:
+      owner: rootdots
+      name: homebrew-tap
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    folder: Formula
+    install: |
+      bin.install "dt"
+    test: |
+      system "#{bin}/dt", "--version"
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
@@ -50,13 +102,12 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-      - '^ci:'
-      - '^chore:'
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
       - Merge pull request
       - Merge branch
-
 # The lines beneath this are called `modelines`. See `:help modeline`
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
