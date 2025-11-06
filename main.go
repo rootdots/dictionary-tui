@@ -183,59 +183,110 @@ func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
+func (m model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.Type {
+	case tea.KeyCtrlC:
+		return m, tea.Quit
 
+	case tea.KeyCtrlH:
+		if m.mode == searchMode {
+			m.mode = historyMode
+			m.textInput.Blur()
+		} else {
+			m.mode = searchMode
+			m.textInput.Focus()
+		}
+		return m, nil
+
+	case tea.KeyEsc:
+		if m.mode == historyMode {
+			m.mode = searchMode
+			m.textInput.Focus()
+			return m, nil
+		}
+	}
+	return m, nil
+}
+
+func (m model) handleSearchMode(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	if key, ok := msg.(tea.KeyMsg); ok && key.Type == tea.KeyEnter {
+		word := strings.TrimSpace(m.textInput.Value())
+		if word != "" {
+			m.word = word
+			m.textInput.SetValue("")
+			m.textInput.Blur()
+			m.addToHistory(word)
+			m.definition = "Searching..."
+			m.viewport.SetContent(m.definition)
+			m.viewport.GotoTop()
+			return m, lookupDefinitionCmd(m.word)
+		}
+	}
+	m.textInput, cmd = m.textInput.Update(msg)
+	cmds = append(cmds, cmd)
+	m.viewport, cmd = m.viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m model) handleHistoryMode(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	if key, ok := msg.(tea.KeyMsg); ok && key.Type == tea.KeyEnter {
+		selectedItem := m.history.SelectedItem()
+		if selectedItem != nil {
+			selectedWord := string(selectedItem.(historyItem))
+			m.mode = searchMode
+			m.word = selectedWord
+			m.textInput.Focus()
+			m.definition = fmt.Sprintf("Reviewing definition for: %s...", keywordStyle.Render(selectedWord))
+			m.viewport.SetContent(m.definition)
+			m.viewport.GotoTop()
+			return m, lookupDefinitionCmd(selectedWord)
+		}
+	}
+	m.history, cmd = m.history.Update(msg)
+	return m, cmd
+}
+
+func (m model) handleWindowSize(msg tea.WindowSizeMsg) model {
+	hPad := appStyle.GetHorizontalPadding() * 2
+	vPad := appStyle.GetVerticalPadding() * 2
+	borderPad := 2
+
+	headerHeight := lipgloss.Height(m.headerView())
+	footerHeight := lipgloss.Height(m.footerView())
+
+	availableWidth := msg.Width - hPad - borderPad
+	availableHeight := msg.Height - headerHeight - footerHeight - vPad - borderPad
+
+	if !m.ready {
+		m.viewport = viewport.New(availableWidth, availableHeight)
+		m.history.SetSize(availableWidth, availableHeight)
+		m.ready = true
+	} else {
+		m.viewport.Width = availableWidth
+		m.viewport.Height = availableHeight
+		m.history.SetSize(availableWidth, availableHeight)
+	}
+
+	m.textInput.Width = m.viewport.Width / 3
+	m.viewport.SetContent(m.definition)
+	return m
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC:
-			return m, tea.Quit
-
-		case tea.KeyCtrlH:
-			if m.mode == searchMode {
-				m.mode = historyMode
-				m.textInput.Blur()
-			} else {
-				m.mode = searchMode
-				m.textInput.Focus()
-			}
-			return m, nil
-
-		case tea.KeyEsc:
-			if m.mode == historyMode {
-				m.mode = searchMode
-				m.textInput.Focus()
-				return m, nil
-			}
+		if model, cmd := m.handleKeyMsg(msg); cmd != nil {
+			return model, cmd
 		}
 
 	case tea.WindowSizeMsg:
-		hPad := appStyle.GetHorizontalPadding() * 2
-		vPad := appStyle.GetVerticalPadding() * 2
-		borderPad := 2
-
-		headerHeight := lipgloss.Height(m.headerView())
-		footerHeight := lipgloss.Height(m.footerView())
-
-		availableWidth := msg.Width - hPad - borderPad
-		availableHeight := msg.Height - headerHeight - footerHeight - vPad - borderPad
-
-		if !m.ready {
-			m.viewport = viewport.New(availableWidth, availableHeight)
-			m.history.SetSize(availableWidth, availableHeight)
-			m.ready = true
-		} else {
-			m.viewport.Width = availableWidth
-			m.viewport.Height = availableHeight
-			m.history.SetSize(availableWidth, availableHeight)
-		}
-
-		m.textInput.Width = m.viewport.Width / 3
-		m.viewport.SetContent(m.definition)
+		m = m.handleWindowSize(msg)
 
 	case resultMsg:
 		m.definition = string(msg)
@@ -250,42 +301,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.mode == searchMode {
-		if key, ok := msg.(tea.KeyMsg); ok && key.Type == tea.KeyEnter {
-			word := strings.TrimSpace(m.textInput.Value())
-			if word != "" {
-				m.word = word
-				m.textInput.SetValue("")
-				m.textInput.Blur()
-				m.addToHistory(word)
-				m.definition = "Searching..."
-				m.viewport.SetContent(m.definition)
-				m.viewport.GotoTop()
-				return m, lookupDefinitionCmd(m.word)
-			}
-		}
-		m.textInput, cmd = m.textInput.Update(msg)
-		cmds = append(cmds, cmd)
-		m.viewport, cmd = m.viewport.Update(msg)
-		cmds = append(cmds, cmd)
-	} else {
-		if key, ok := msg.(tea.KeyMsg); ok && key.Type == tea.KeyEnter {
-			selectedItem := m.history.SelectedItem()
-			if selectedItem != nil {
-				selectedWord := string(selectedItem.(historyItem))
-				m.mode = searchMode
-				m.word = selectedWord
-				m.textInput.Focus()
-				m.definition = fmt.Sprintf("Reviewing definition for: %s...", keywordStyle.Render(selectedWord))
-				m.viewport.SetContent(m.definition)
-				m.viewport.GotoTop()
-				return m, lookupDefinitionCmd(selectedWord)
-			}
-		}
-		m.history, cmd = m.history.Update(msg)
-		cmds = append(cmds, cmd)
+		return m.handleSearchMode(msg)
 	}
-
-	return m, tea.Batch(cmds...)
+	return m.handleHistoryMode(msg)
 }
 
 func (m model) View() string {
@@ -447,7 +465,7 @@ func formatHelp() string {
 	var b strings.Builder
 
 	b.WriteString(helpHeaderStyle.Render(fmt.Sprintf("Dictionary-TUI %s", version)) + "\n")
-	b.WriteString(helpTextStyle.Render("A terminal-based dictionary application with an interactive interface and command-line support.\n"))
+	b.WriteString(helpTextStyle.Render("A terminal-based dictionary application with interactive TUI and CLI interfaces.\n"))
 	b.WriteString(helpSectionStyle.Render("USAGE: ") + helpTextStyle.Render("dt [FLAGS] [WORD]") + "\n")
 	b.WriteString(helpTextStyle.Render("       dt [WORD]") + "\n")
 	b.WriteString(helpSectionStyle.Render("FLAGS: ") + fmt.Sprintf("%s  %s\n",
