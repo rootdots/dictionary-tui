@@ -140,14 +140,15 @@ const (
 )
 
 type model struct {
-	mode       appMode
+	// Large fields first for better memory alignment
 	textInput  textinput.Model
 	viewport   viewport.Model
 	history    list.Model
-	err        error
-	ready      bool
-	word       string
 	definition string
+	word       string
+	err        error
+	mode       appMode
+	ready      bool
 }
 
 func initialModel() model {
@@ -465,7 +466,7 @@ func formatHelp() string {
 	var b strings.Builder
 
 	b.WriteString(helpHeaderStyle.Render(fmt.Sprintf("Dictionary-TUI %s", version)) + "\n")
-	b.WriteString(helpTextStyle.Render("A terminal-based dictionary application with interactive TUI and CLI interfaces.\n"))
+	b.WriteString(helpTextStyle.Render("A dictionary application with interactive TUI and CLI interfaces.\n"))
 	b.WriteString(helpSectionStyle.Render("USAGE: ") + helpTextStyle.Render("dt [FLAGS] [WORD]") + "\n")
 	b.WriteString(helpTextStyle.Render("       dt [WORD]") + "\n")
 	b.WriteString(helpSectionStyle.Render("FLAGS: ") + fmt.Sprintf("%s  %s\n",
