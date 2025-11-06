@@ -293,7 +293,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		var cmd tea.Cmd
 		var handled bool
-		m, cmd, handled = m.handleKeyMsg(msg)
+		var newModel tea.Model
+		newModel, cmd, handled = m.handleKeyMsg(msg)
+		m = newModel.(model)
 		if handled {
 			return m, cmd
 		}
