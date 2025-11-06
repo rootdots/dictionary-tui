@@ -75,23 +75,6 @@ nfpms:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
 
-brews:
-  - name: dt
-    homepage: https://github.com/rootdots/dictionary-tui
-    description: Terminal-based dictionary application with TUI and CLI modes
-    license: MIT
-    tap:
-      owner: rootdots
-      name: homebrew-tap
-    commit_author:
-      name: goreleaserbot
-      email: bot@goreleaser.com
-    folder: Formula
-    install: |
-      bin.install "dt"
-    test: |
-      system "#{bin}/dt", "--version"
-
 checksum:
   name_template: "checksums.txt"
 
