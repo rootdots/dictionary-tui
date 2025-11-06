@@ -69,7 +69,7 @@ jobs:
 
       - name: Test Build
         run: |
-          go build -o dt
+          go build -o dt ./cmd/dt
           ./dt --version
           ./dt --help
           if [ $? -ne 0 ]; then
