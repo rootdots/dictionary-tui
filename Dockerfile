@@ -8,7 +8,7 @@ COPY . .
 
 # Download dependencies and build
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o dt
+RUN CGO_ENABLED=0 GOOS=linux go build -o dt ./cmd/dt
 
 # Runtime stage
 FROM alpine:latest
