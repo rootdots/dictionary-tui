@@ -18,6 +18,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Version information (populated by goreleaser)
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 // --- API Structures ---
 type Phonetic struct {
 	Text  string `json:"text"`
@@ -440,7 +447,7 @@ func formatDefinition(entry WordEntry) string {
 func formatHelp() string {
 	var b strings.Builder
 
-	b.WriteString(helpHeaderStyle.Render("Dictionary-TUI") + "\n")
+	b.WriteString(helpHeaderStyle.Render(fmt.Sprintf("Dictionary-TUI %s", version)) + "\n")
 	b.WriteString(helpTextStyle.Render("A terminal-based dictionary application with an interactive interface and command-line support.\n"))
 	b.WriteString(helpSectionStyle.Render("USAGE: ") + helpTextStyle.Render("dt [FLAGS] [WORD]") + "\n")
 	b.WriteString(helpTextStyle.Render("       dt [WORD]") + "\n")
@@ -451,6 +458,10 @@ func formatHelp() string {
 	b.WriteString("       " + fmt.Sprintf("%s  %s\n",
 		helpCommandStyle.Render("-h, --help"),
 		helpTextStyle.Render("Show this help message"),
+	))
+	b.WriteString("       " + fmt.Sprintf("%s  %s\n",
+		helpCommandStyle.Render("--version"),
+		helpTextStyle.Render("Show version information"),
 	))
 	b.WriteString(helpSectionStyle.Render("MODES: ") + helpTextStyle.Render("1. Interactive Mode (TUI):") + "\n")
 	b.WriteString(helpTextStyle.Render("       Launch without arguments to enter the interactive interface.") + "\n")
@@ -469,12 +480,22 @@ func formatHelp() string {
 }
 
 func main() {
+	// Version flag
+	versionFlag := flag.Bool("version", false, "Print version information")
+
 	flag.Usage = func() {
 		fmt.Println(formatHelp())
 		os.Exit(0)
 	}
 	wordPtr := flag.String("w", "", "Word to look up")
 	flag.Parse()
+
+	if *versionFlag {
+		fmt.Printf("dictionary-tui version %s\n", version)
+		fmt.Printf("commit: %s\n", commit)
+		fmt.Printf("built at: %s\n", date)
+		return
+	}
 
 	if *wordPtr != "" || len(flag.Args()) > 0 {
 		var word string
