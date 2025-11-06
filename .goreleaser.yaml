@@ -35,9 +35,7 @@ archives:
       - goos: windows
         format: zip
     files:
-      - README.md
       - LICENSE
-      - CONTEXT.md
 
 dockers:
   - image_templates:
@@ -55,8 +53,6 @@ dockers:
       - go.mod
       - go.sum
       - main.go
-      - README.md
-      - LICENSE
 
 nfpms:
   - package_name: dt
@@ -70,8 +66,6 @@ nfpms:
     dependencies:
       - libc6
     contents:
-      - src: ./README.md
-        dst: /usr/share/doc/dt/README.md
       - src: ./LICENSE
         dst: /usr/share/doc/dt/LICENSE
     file_name_template: >-

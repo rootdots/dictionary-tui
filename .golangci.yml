@@ -11,8 +11,9 @@ run:
 
 # Output configuration options
 output:
-  # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
-  format: colored-line-number
+  # Formats: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
+  formats:
+    - colored-line-number
   # Print lines of code with issue
   print-issued-lines: true
   # Print linter name in the end of issue text
@@ -20,9 +21,10 @@ output:
 
 # Linters settings
 linters-settings:
-  shadow:
-    # Enable all checks for shadowed variables
-    strict: true
+  govet:
+    # Enable all checks including shadowing
+    enable-all: true
+    check-shadowing: true
   gofmt:
     # Simplify code: gofmt with `-s` option
     simplify: true
@@ -73,7 +75,6 @@ linters:
     - goimports # Checks missing or unreferenced package imports
     - prealloc # Finds slice declarations that could potentially be preallocated
     - lll # Reports long lines
-    - shadow # Checks for shadowed variables
 
 # Issues configuration
 issues:

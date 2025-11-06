@@ -16,10 +16,11 @@ FROM alpine:latest
 # Create a non-root user
 RUN adduser -D -h /home/appuser appuser
 
-# Copy the binary and documentation
+# Copy the binary
 COPY --from=builder /app/dt /usr/local/bin/
-COPY --from=builder /app/README.md /usr/share/doc/dt/
-COPY --from=builder /app/LICENSE /usr/share/doc/dt/
+
+# Create documentation directory
+RUN mkdir -p /usr/share/doc/dt
 
 # Set ownership and permissions
 RUN chown -R appuser:appuser /usr/share/doc/dt && \
