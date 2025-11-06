@@ -1,4 +1,4 @@
-module dt
+module github.com/rootdots/dictionary-tui
 
 go 1.22
 

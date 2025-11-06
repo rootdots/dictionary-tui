@@ -21,7 +21,7 @@ docker run --rm ghcr.io/rootdots/dt:latest -w hello
 
 ### From Source
 ```bash
-go install github.com/rootdots/dictionary-tui@latest
+go install github.com/rootdots/dictionary-tui/cmd/dt@latest
 ```
 
 ## 📖 Usage
