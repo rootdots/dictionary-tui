@@ -4,6 +4,8 @@ A terminal-based dictionary application written in Go. It provides a simple and 
 
 The application features a clean, text-based user interface (TUI) built using the Bubble Tea framework, allowing for an interactive and user-friendly experience.
 
+![dt](assets/dt.png)
+
 ## ✨ Features
 
 -   **Word Lookup:** Users can enter a word to fetch its definition.
