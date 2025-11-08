@@ -107,7 +107,7 @@ var (
 	cliPanelStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("51")).
-			Padding(1, 2).
+			Padding(0, 1).
 			Width(defaultWidth)
 
 	// Help styles
@@ -470,7 +470,6 @@ func formatDefinition(entry WordEntry) string {
 				builder.WriteString("      " + exampleStyle.Render("• "+def.Example) + "\n")
 			}
 		}
-		builder.WriteString("\n")
 	}
 
 	return builder.String()
@@ -543,8 +542,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		title := titleStyle.Render(fmt.Sprintf("Dictionary-TUI: %s", word))
-		fmt.Printf("\n%s\n\n%s\n", title, cliPanelStyle.Render(formatDefinition(entries[0])))
+		fmt.Printf("\n%s", cliPanelStyle.Render(formatDefinition(entries[0])))
 		return
 	}
 
