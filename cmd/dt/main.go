@@ -133,11 +133,6 @@ var (
 	helpExampleStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("246")).
 				Italic(true)
-
-	// Title style for CLI mode
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")).
-			Bold(true)
 )
 
 // Define the two possible modes for the application
